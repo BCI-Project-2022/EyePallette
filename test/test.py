@@ -19,7 +19,7 @@ def main():
 
     filePath=os.path.join('C:\MAVE_RawData', k, 'FP1_FFT.txt')
     # print(filePath)
-    l = []
+    # l = []
 
 
     with open(filePath, "r") as f:
@@ -38,7 +38,7 @@ def main():
             else:
                 delay_time = 0. # reset delay time
                 print(line)  # already has newline
-                l.append(line)
+                # l.append(line)
 
 
 
