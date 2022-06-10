@@ -2,9 +2,16 @@ import datetime
 import os
 from time import sleep
 
+all_lines=[] # line 읽어 넣을 배열, 최종적으로 이중 배열이 된다.
+
 #@app.route('/') : Front_end 쪽에서 호출 
 def main():
-    all_lines=[] # line 읽어 넣을 배열, 최종적으로 이중 배열이 된다. 
+
+    img_1=[]
+    img_2=[]
+    img_3=[]
+
+
     d = datetime.datetime.now()
     year = str(d.year)
     month = '0'+str(d.month)
@@ -34,42 +41,203 @@ def main():
 
 # 3841 : 코드짠 사람 컴퓨터의 엑셀 열이 3841 까지있었으며, 컴퓨터에 따라 더 늘어날 수 잇으나 13,19,23 hz등의 상대적으로 저주파 성분을 
 #인덱싱 하기 때문에 길이는 상관없음.
-def mid_request():
+def mid_request_0():
+    sum_7hz=0.00000000000000000000000
     sum_13hz=0.00000000000000000000000
     sum_19hz=0.00000000000000000000000
-    sum_23hz=0.00000000000000000000000
 
-    avg_13hz=0.00000000000000000000000
-    avg_19hz=0.00000000000000000000000
-    avg_23hz=0.00000000000000000000000
+    m_avg_7hz=0.00000000000000000000000
+    m_avg_13hz=0.00000000000000000000000
+    m_avg_19hz=0.00000000000000000000000
 
 
     for i in range(3841):
-        if all_lines[0][i] == '13.00Hz':   #첫 행의 열의 인덱스를 구한다. 첫 행에는 hz 성분이 저장된다. 
+        if all_lines[0][i] == '7.00Hz':   #첫 행의 열의 인덱스를 구한다. 첫 행에는 hz 성분이 저장된다.
+            idx_7hz = i
+        if all_lines[0][i] == '13.00Hz':
             idx_13hz = i
         if all_lines[0][i] == '19.00Hz':
             idx_19hz = i
-        if all_lines[0][i] == '23.00Hz':
-            idx_23hz = i
             break
-    # 27~40 라인이 중립평균을 구하는 라인 이므로 28~40 라인을 돌며 sum을 구하고 Average를 계산한다. 
-    for i in range(27,40):
-        sum_13hz += float(all_lines[i][idx_13hz])
-        sum_19hz += float(all_lines[i][idx_19hz])
-        sum_23hz += float(all_lines[i][idx_23hz])
+    # 37~54라인이 중립평균을 구하는 라인 이므로 37~54 라인을 돌며 sum을 구하고 Average를 계산한다, +- 0.6hz정도의 인덱스 기준
+    for i in range(37,55):
+        for j in range(-2,2):
+            sum_7hz  += float(all_lines[i+j][idx_7hz])
+            sum_13hz += float(all_lines[i+j][idx_13hz])
+            sum_19hz += float(all_lines[i+j][idx_19hz])
     
-    avg_13hz = sum_13hz / 14.0000000000000000000000
-    avg_19hz = sum_19hz / 14.0000000000000000000000
-    avg_23hz = sum_23hz / 14.0000000000000000000000
+    m_avg_7hz = sum_7hz / 90.0000000000000000000000
+    m_avg_13hz = sum_13hz / 90.0000000000000000000000
+    m_avg_19hz = sum_19hz / 90.0000000000000000000000
     # print(avg_13hz, avg_19hz, avg_23hz)
 
     return {"result" : {
         # '13hz 중립' : avg_13hz,
         # '19hz 중립' : avg_19hz,
         # '23hz 중립' : avg_23hz,
-        '13hz idx' : idx_13hz, 
-        '19hz idx' : idx_19hz, 
-        '23hz idx' : idx_23hz, 
+        '7hz idx' : idx_7hz,
+        '13hz idx' : idx_13hz,
+        '19hz idx' : idx_19hz,
+        'avg_7hz' : m_avg_7hz,
+        'avg_13hz' : m_avg_13hz,
+        'avg_19hz' : m_avg_19hz
+
     }}
+
+def mid_request_1(idx_7hz, idx_13hz, idx_19hz, m_avg_7hz, m_avg_13hz, m_avg_19hz):
+    sum_7hz_1 = 0.00000000000000000000000
+    sum_13hz_1 = 0.00000000000000000000000
+    sum_19hz_1 = 0.00000000000000000000000
+
+    avg_7hz_1 = 0.00000000000000000000000
+    avg_13hz_1 = 0.00000000000000000000000
+    avg_19hz_1 = 0.00000000000000000000000
+
+    Red_flag = 0.000000000000000000000000
+    Blue_flag = 0.00000000000000000000000
+    Green_flag = 0.00000000000000000000000
+    flag_1=''
+
+
+    # 56~81 라인으로 평균을 계산
+    for i in range(56, 82):
+        for j in range(-2, 2):
+            sum_7hz_1 += float(all_lines[i + j][idx_7hz])
+            sum_13hz_1 += float(all_lines[i + j][idx_13hz])
+            sum_19hz_1 += float(all_lines[i + j][idx_19hz])
+
+    avg_7hz_1 = sum_7hz_1 / 130.0000000000000000000000
+    avg_13hz_1 = sum_13hz_1 / 130.0000000000000000000000
+    avg_19hz_1 = sum_19hz_1 / 130.0000000000000000000000
+    # print(avg_13hz, avg_19hz, avg_23hz)
+
+    Red_flag = (avg_7hz_1 - m_avg_7hz)
+    Blue_flag = (avg_13hz_1 - m_avg_13hz)
+    Green_flag = (avg_19hz_1 - m_avg_19hz)
+
+    if ((Red_flag >= Blue_flag) and (Red_flag>=Green_flag)):
+        flag_1 = '1-Red'
+    elif((Blue_flag >= Red_flag) and (Blue_flag >= Green_flag)):
+        flag_1 = '1-Blue'
+    else :
+        flag_1 = '1-Green'
+
+
+
+
+
+    return {"result": {
+        # '13hz 중립' : avg_13hz,
+        # '19hz 중립' : avg_19hz,
+        # '23hz 중립' : avg_23hz,
+        'flag_1' : flag_1
+
+    }}
+
+def mid_request_2(flag_1, idx_7hz, idx_13hz, idx_19hz,m_avg_7hz, m_avg_13hz, m_avg_19hz):
+    sum_7hz_1 = 0.00000000000000000000000
+    sum_13hz_1 = 0.00000000000000000000000
+    sum_19hz_1 = 0.00000000000000000000000
+
+    avg_7hz_1 = 0.00000000000000000000000
+    avg_13hz_1 = 0.00000000000000000000000
+    avg_19hz_1 = 0.00000000000000000000000
+
+    Red_flag = 0.000000000000000000000000
+    Blue_flag = 0.00000000000000000000000
+    Green_flag = 0.00000000000000000000000
+    flag_2=''
+
+
+
+    # 91~118 라인으로 평균을 계산
+    for i in range(91, 119):
+        for j in range(-2, 2):
+            sum_7hz_1 += float(all_lines[i + j][idx_7hz])
+            sum_13hz_1 += float(all_lines[i + j][idx_13hz])
+            sum_19hz_1 += float(all_lines[i + j][idx_19hz])
+
+    avg_7hz_1 = sum_7hz_1 / 145.0000000000000000000000
+    avg_13hz_1 = sum_13hz_1 / 145.0000000000000000000000
+    avg_19hz_1 = sum_19hz_1 / 145.0000000000000000000000
+    # print(avg_13hz, avg_19hz, avg_23hz)
+
+    Red_flag = (avg_7hz_1 - m_avg_7hz)
+    Blue_flag = (avg_13hz_1 - m_avg_13hz)
+    Green_flag = (avg_19hz_1 - m_avg_19hz)
+
+    if ((Red_flag >= Blue_flag) and (Red_flag>=Green_flag)):
+        flag_2 = flag_1+'-'+'Red'
+    elif((Blue_flag >= Red_flag) and (Blue_flag >= Green_flag)):
+        flag_2 = flag_1+'-'+'Blue'
+    else :
+        flag_2 = flag_1+'-'+'Green'
+
+
+
+
+
+    return {"result": {
+        # '13hz 중립' : avg_13hz,
+        # '19hz 중립' : avg_19hz,
+        # '23hz 중립' : avg_23hz,
+        'flag_2' : flag_2
+
+    }}
+
+def mid_request_3(flag_2, idx_7hz, idx_13hz, idx_19hz,m_avg_7hz, m_avg_13hz, m_avg_19hz):
+    sum_7hz_1 = 0.00000000000000000000000
+    sum_13hz_1 = 0.00000000000000000000000
+    sum_19hz_1 = 0.00000000000000000000000
+
+    avg_7hz_1 = 0.00000000000000000000000
+    avg_13hz_1 = 0.00000000000000000000000
+    avg_19hz_1 = 0.00000000000000000000000
+
+    Red_flag = 0.000000000000000000000000
+    Blue_flag = 0.00000000000000000000000
+    Green_flag = 0.00000000000000000000000
+    flag_3=''
+
+
+
+    # 127~154 라인으로 평균을 계산
+    for i in range(127, 155):
+        for j in range(-2, 2):
+            sum_7hz_1 += float(all_lines[i + j][idx_7hz])
+            sum_13hz_1 += float(all_lines[i + j][idx_13hz])
+            sum_19hz_1 += float(all_lines[i + j][idx_19hz])
+
+    avg_7hz_1 = sum_7hz_1 / 145.0000000000000000000000
+    avg_13hz_1 = sum_13hz_1 / 145.0000000000000000000000
+    avg_19hz_1 = sum_19hz_1 / 145.0000000000000000000000
+    # print(avg_13hz, avg_19hz, avg_23hz)
+
+    Red_flag = (avg_7hz_1 - m_avg_7hz)
+    Blue_flag = (avg_13hz_1 - m_avg_13hz)
+    Green_flag = (avg_19hz_1 - m_avg_19hz)
+
+    if ((Red_flag >= Blue_flag) and (Red_flag>=Green_flag)):
+        flag_3 = flag_2+'-'+'Red'
+    elif((Blue_flag >= Red_flag) and (Blue_flag >= Green_flag)):
+        flag_3 = flag_2+'-'+'Blue'
+    else :
+        flag_3 = flag_2+'-'+'Green'
+
+
+
+
+
+    return {"result": {
+        # '13hz 중립' : avg_13hz,
+        # '19hz 중립' : avg_19hz,
+        # '23hz 중립' : avg_23hz,
+        'flag_3' : flag_3
+
+    }}
+
+
+
+
 
 main()
